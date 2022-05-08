@@ -142,6 +142,7 @@ coordinate best_move(char** board, int size) {
 
 void print_board(char** board, int size,char* buf_game) {
 	int l=0;
+	l+=sprintf((buf_game+l),"\n");
     l+=sprintf((buf_game+l),"  ");
     for (int i = 0; i < size; i++) {
         l+=sprintf((buf_game+l)," %d", i);

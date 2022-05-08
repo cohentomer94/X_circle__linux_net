@@ -150,118 +150,93 @@ int main(void)
         for (int i = 0; i < size; i++) {
             board[i] = (char*)calloc(size, sizeof(char));
         }
-
+	
+	
         print_board(board, size,buf_game);
-                    puts(buf_game);
-
-                    send(4, buf_game, 200, 0);
-                    send(5, buf_game, 200, 0) ;         
-
-        while (1) {
-
-
-
+        send(4, buf_game, 200, 0);sleep(1);                 
+        send(5, buf_game, 200, 0); sleep(1);  
+        send(4, ">PLAYER1 Enter row betwen 0-2 ", 200, 0);sleep(1);
+        send(5, ">PLAYER2 please wait", 200, 0);sleep(1);
+         while (1) {
             // PLAYER1 MAKES MOVE
-            send(4, ">PLAYER1 Enter row betwen 0-2 ", 50, 0);            
-            send(5, ">PLAYER's turn 2 ", 50, 0);            
+
             while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
-            row=buf[0]-'0';
-            send(4, ">PLAYER1 Enter col betwen 0-2 ", 50, 0); 
+            	row=buf[0]-'0';sleep(1);
+            	send(4, ">PLAYER1 Enter col betwen 0-2 ", 100, 0); sleep(1);
             while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
-            col=buf[0]-'0';
-
-
-
+            	col=buf[0]-'0';
             while (!(0 <= row && row < size && 0 <= col && col < size) || board[row][col]) {
-                printf("The values for row and col must be greater than 0 and smaller than %d, make sure you select an empty spot.\n", size);
-                printf("> Enter row and col: ");
-            while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
-            row=buf[0]-'0';
-            while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
-            col=buf[0]-'0';
-
+                send(4,"The values for row and col must be greater than 0 and smaller than 3, make sure you select an empty spot.\n", 			 200, 0);sleep(0.5);
+               send(4, ">PLAYER1 Enter row betwen 0-2 ", 50, 0); sleep(0.5);
+            	while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
+            		row=buf[0]-'0';
+            	send(4, ">PLAYER1 Enter col betwen 0-2 ", 50, 0); sleep(0.5);
+            	while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
+            		col=buf[0]-'0';
             }
-           // sprintf(buf_game,"You entered %d and %d\n", row, col);
-          //  printf("You entered %d and %d\n", row, col);send(4,buf_game,100, 0); 
 
             board[row][col] = PLAYER1;
-                    send(4, buf_game, 200, 0);
-                    send(5, buf_game, 200, 0) ;
+                    send(4, buf_game, 200, 0);sleep(0.5);
+                    send(5, buf_game, 200, 0) ;sleep(0.5);
             
 
             moves++;
             print_board(board, size,buf_game);
-                    send(4, buf_game, 200, 0);
-                    send(5, buf_game, 200, 0) ;
+                    send(4, buf_game, 200, 0);sleep(0.5);
+                    send(5, buf_game, 200, 0) ;sleep(0.5);
             puts(buf_game);
 
             if (won(board, size, PLAYER1, (coordinate){row, col})) {
-                printf("Congratiolations, you won!\n");send(4,"you won!",20, 0); 
-                send(5,"you loss",20, 0); 
+                send(4,"you won!",20, 0); sleep(0.5);
+                send(5,"you loss",20, 0); sleep(0.5);
                 break;
             }
 
             if (moves >= size * size) {
-                printf("Tie.\n");
+                send(4,"Tie.\n",20, 0); sleep(0.5);
+                send(5,"Tie.\n",20, 0); sleep(0.5);
                 break;
             }
-/*
-            // AI MAKES MOVE
-            
-            printf("AI's turn:\n");
-            coordinate coord = best_move(board, size);
-            moves++;
-            print_board(board, size,buf_game);
-                        puts(buf_game);
-            if (won(board, size, AI, coord)) {
-                printf("You lose.\n");
-                break;
-            }
-       
-        
-*/
+
 	
             // PLAYER2 MAKES MOVE
 
-            send(5, ">PLAYER2 Enter row betwen 0-2 ", 50, 0);            
-            send(4, ">PLAYER's turn 1 ", 50, 0);  
+            send(5, ">PLAYER2 Enter row betwen 0-2 ", 50, 0);sleep(0.5);            
+            send(4, ">PLAYER's turn 1 ", 50, 0);  sleep(0.5);
             while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0||buf=="\n");
             row=buf[0]-'0';
-            send(4, ">PLAYER2 Enter col betwen 0-2 ", 50, 0); 
+            send(5, ">PLAYER2 Enter col betwen 0-2 ", 50, 0); 
             while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0);
             col=buf[0]-'0';
             while (!(0 <= row && row < size && 0 <= col && col < size) || board[row][col]) {
-                printf("The values for row and col must be greater than 0 and smaller than %d, make sure you select an empty spot.\n", size);
-                printf("> Enter row and col: ");
+                send(5,"The values for row and col must be greater than 0 and smaller than 3, make sure you select an empty spot.\n", 			 200, 0);sleep(0.5);
+                send(5, ">PLAYER2 Enter row betwen 0-2 ", 50, 0);sleep(0.5); 
 		
-            while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0);
-            row=buf[0]-'0';
-            
-            while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0);
-            col=buf[0]-'0';
-                    ;  // https://stackoverflow.com/a/68471839
+            	while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0);
+            	row=buf[0]-'0';
+            	send(5, ">PLAYER2 Enter col betwen 0-2 ", 50, 0);sleep(0.5); 
+            	while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0);
+            	col=buf[0]-'0';
 
-               
             }
 
-            printf("You entered %d and %d\n", row, col);send(5,buf_game,100, 0); 
+            send(5,buf_game,100, 0); sleep(0.5); 
             board[row][col] = PLAYER2;
                     send(4, buf_game, 200, 0);
                     send(5, buf_game, 200, 0) ;
             moves++;
             print_board(board, size,buf_game);
-                    send(4, buf_game, 200, 0);
-                    send(5, buf_game, 200, 0) ;
-            puts(buf_game);
-
+            send(4, buf_game, 200, 0);
+            send(5, buf_game, 200, 0) ;
             if (won(board, size, PLAYER2, (coordinate){row, col})) {
-                 printf("Congratiolations, you won!\n");send(5,"you won!",20, 0); 
-                send(4,"you loss",20, 0); 
+                send(5,"you won!",20, 0); sleep(0.5); 
+                send(4,"you loss",20, 0); sleep(0.5); 
                 break;
             }
 
             if (moves >= size * size) {
-                printf("Tie.\n");
+                send(4,"Tie.\n",20, 0); sleep(0.5);
+                send(5,"Tie.\n",20, 0); sleep(0.5);
                 break;
             }
 }
