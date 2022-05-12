@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,16 +9,122 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#include <ctype.h>
-
 
 #include "tictactoe.h"
 
+#define size 3
 
+#define PLAYER2 'O'
+#define PLAYER1 'X'
 #define PORT "9034"   // port we're listening on
+int won(char** board, char player, coordinate last_played) {
+    int i;
 
+    // check horizontal
+    i = 0;
+    while (i < size && board[last_played.x][i] == player) {
+        i++;
+    }
+    if (i == size) {
+        return 1;
+    }
 
+    // check vertical
+    i = 0;
+    while (i < size && board[i][last_played.y] == player) {
+        i++;
+    }
+    if (i == size) {
+        return 1;
+    }
 
+    // check diagonal
+    if (last_played.x == last_played.y || (last_played.x == size - 1 && last_played.y == 0) || (last_played.x == 0 && last_played.y == size - 1)) {
+        i = 0;
+        while (i < size && board[i][i] == player) {
+            i++;
+        }
+        if (i == size) {
+            return 1;
+        }
+
+        i = 0;
+        while (i < size && board[i][size - i - 1] == player) {
+            i++;
+        }
+        if (i == size) {
+            return 1;
+        }
+    }
+    return 0;
+}
+int move_player(char ***board,int row,int col,int player){
+
+	if (!(0 <= row && row < size && 0 <= col && col < size) || (*board)[row][col]) {
+	
+		printf("no good");
+                return 2;
+
+            }
+            printf("You entered %d and %d\n", row, col);
+            if(player==0) (*board)[row][col] = PLAYER1;
+            else (*board)[row][col] = PLAYER2;
+            return 1;
+
+            	
+	
+	
+
+}
+
+char **build_game(fd_set master ,int fdmax,int listener){
+        char** board = (char**)calloc(size, sizeof(char*));
+        for (int i = 0; i < size; i++) {
+            board[i] = (char*)calloc(size, sizeof(char));
+            
+}
+for(int j = 0; j <= fdmax; j++) {
+    if (FD_ISSET(j, &master)) {
+    	if (j != listener) {
+		send(j, "lets start play", 100, 0);}}}
+return board;
+}
+void print_board(char** board, fd_set master ,int fdmax,int listener) {
+    char buf_game1[1000];
+    char *buf_game=buf_game1;
+    int l=0;
+    l+=sprintf((buf_game+l),"\n");
+    l+=sprintf((buf_game+l),"  ");
+    for (int i = 0; i < size; i++) {
+        l+=sprintf((buf_game+l)," %d", i);
+        
+    }
+    
+    l+=sprintf((buf_game+l),"\n");
+  //  puts(buf_game);
+    for (int i = 0; i < size; i++) {
+        l+=sprintf((buf_game+l),"%d |", i);
+
+        for (int j = 0; j < size; j++) {
+            if (!board[i][j]) {
+                l+=sprintf((buf_game+l),".|");
+            } else {
+                l+=sprintf((buf_game+l),"%c|", board[i][j]);
+            }
+        }
+        l+=sprintf((buf_game+l),"\n");
+    }
+    
+    puts(buf_game);
+    for(int j = 0; j <= fdmax; j++) {
+    // send to everyone!
+    	if (FD_ISSET(j, &master)) {
+    // except the listener and ourselves
+    	if (j != listener) {
+     			send(j, buf_game, 100, 0);
+    			//perror("send");
+}}
+}}
 // get sockaddr, IPv4 or IPv6:
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -33,12 +140,12 @@ int main(void)
     fd_set master;    // master file descriptor list
     fd_set read_fds;  // temp file descriptor list for select()
     int fdmax;        // maximum file descriptor number
-    int numplayer = 0;
+
     int listener;     // listening socket descriptor
     int newfd;        // newly accept()ed socket descriptor
     struct sockaddr_storage remoteaddr; // client address
     socklen_t addrlen;
-    char buf_game[500];
+
     char buf[256];    // buffer for client data
     int nbytes;
 
@@ -100,6 +207,9 @@ int main(void)
     fdmax = listener; // so far, it's this one
 
     // main loop
+    int players=0,player_turn=1,move_play=0,status_input=0,moves=0;
+    char **board=NULL;
+    int row=0,col=0,player1=0,player2=0,flag=0;
     for(;;) {
         read_fds = master; // copy it
         if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
@@ -124,145 +234,25 @@ int main(void)
                         if (newfd > fdmax) {    // keep track of the max
                             fdmax = newfd;
                         }
-                        printf("selectserver: new connection from %s on "
+                        	printf("selectserver: new connection from %s on "
                             "socket %d\n",
                             inet_ntop(remoteaddr.ss_family,
                                 get_in_addr((struct sockaddr*)&remoteaddr),
                                 remoteIP, INET6_ADDRSTRLEN),
-                            newfd);
-                            
-                            
-                            numplayer+=1;
-                         printf("num of connect : %d",numplayer);
-                         if(numplayer==2){
-/////////////////////////////////////////////////
-				
-   printf("You are playing Tic Tac Toe.\n");
-
-    int gameloop = 1;
-    char buf_game[1000];
-    int moves = 0;
-    int row, col;
-    while (gameloop) {
-        int size =3;
-
-        char** board = (char**)calloc(size, sizeof(char*));
-        for (int i = 0; i < size; i++) {
-            board[i] = (char*)calloc(size, sizeof(char));
-        }
-	
-	
-        print_board(board, size,buf_game);
-        send(4, buf_game, 200, 0);sleep(1);                 
-        send(5, buf_game, 200, 0); sleep(1);  
-        send(4, ">PLAYER1 Enter row betwen 0-2 ", 200, 0);sleep(1);
-        send(5, ">PLAYER2 please wait", 200, 0);sleep(1);
-         while (1) {
-            // PLAYER1 MAKES MOVE
-
-            while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
-            	row=buf[0]-'0';sleep(1);
-            	send(4, ">PLAYER1 Enter col betwen 0-2 ", 100, 0); sleep(1);
-            while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
-            	col=buf[0]-'0';
-            while (!(0 <= row && row < size && 0 <= col && col < size) || board[row][col]) {
-                send(4,"The values for row and col must be greater than 0 and smaller than 3, make sure you select an empty spot.\n", 			 200, 0);sleep(0.5);
-               send(4, ">PLAYER1 Enter row betwen 0-2 ", 50, 0); sleep(0.5);
-            	while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
-            		row=buf[0]-'0';
-            	send(4, ">PLAYER1 Enter col betwen 0-2 ", 50, 0); sleep(0.5);
-            	while ((nbytes = recv(4, buf, sizeof buf, 0)) == 0);
-            		col=buf[0]-'0';
-            }
-
-            board[row][col] = PLAYER1;
-                    send(4, buf_game, 200, 0);sleep(0.5);
-                    send(5, buf_game, 200, 0) ;sleep(0.5);
-            
-
-            moves++;
-            print_board(board, size,buf_game);
-                    send(4, buf_game, 200, 0);sleep(0.5);
-                    send(5, buf_game, 200, 0) ;sleep(0.5);
-            puts(buf_game);
-
-            if (won(board, size, PLAYER1, (coordinate){row, col})) {
-                send(4,"you won!",20, 0); sleep(0.5);
-                send(5,"you loss",20, 0); sleep(0.5);
-                break;
-            }
-
-            if (moves >= size * size) {
-                send(4,"Tie.\n",20, 0); sleep(0.5);
-                send(5,"Tie.\n",20, 0); sleep(0.5);
-                break;
-            }
-
-	
-            // PLAYER2 MAKES MOVE
-
-            send(5, ">PLAYER2 Enter row betwen 0-2 ", 50, 0);sleep(0.5);            
-            send(4, ">PLAYER's turn 1 ", 50, 0);  sleep(0.5);
-            while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0||buf=="\n");
-            row=buf[0]-'0';
-            send(5, ">PLAYER2 Enter col betwen 0-2 ", 50, 0); 
-            while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0);
-            col=buf[0]-'0';
-            while (!(0 <= row && row < size && 0 <= col && col < size) || board[row][col]) {
-                send(5,"The values for row and col must be greater than 0 and smaller than 3, make sure you select an empty spot.\n", 			 200, 0);sleep(0.5);
-                send(5, ">PLAYER2 Enter row betwen 0-2 ", 50, 0);sleep(0.5); 
-		
-            	while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0);
-            	row=buf[0]-'0';
-            	send(5, ">PLAYER2 Enter col betwen 0-2 ", 50, 0);sleep(0.5); 
-            	while ((nbytes = recv(5, buf, sizeof buf, 0)) == 0);
-            	col=buf[0]-'0';
-
-            }
-
-            send(5,buf_game,100, 0); sleep(0.5); 
-            board[row][col] = PLAYER2;
-                    send(4, buf_game, 200, 0);
-                    send(5, buf_game, 200, 0) ;
-            moves++;
-            print_board(board, size,buf_game);
-            send(4, buf_game, 200, 0);
-            send(5, buf_game, 200, 0) ;
-            if (won(board, size, PLAYER2, (coordinate){row, col})) {
-                send(5,"you won!",20, 0); sleep(0.5); 
-                send(4,"you loss",20, 0); sleep(0.5); 
-                break;
-            }
-
-            if (moves >= size * size) {
-                send(4,"Tie.\n",20, 0); sleep(0.5);
-                send(5,"Tie.\n",20, 0); sleep(0.5);
-                break;
-            }
-}
-        moves = 0;
-
-        for (int i = 0; i < size; i++) {
-            free(board[i]);
-            board[i] = NULL;
-        }
-        free(board);
-        board = NULL;
-
-        printf("Do you want to play again? (y/n): ");
-        char c;
-        scanf(" %c", &c);
-        gameloop = tolower(c) == 'y';
-    }
-
-    printf("Thank you for playing.\n");
-
-
-/////////////////////////////////////////////////
-                         
+                    		newfd);
+                            	players +=1;
+                            if (players==1) {
+                            	player1=newfd;
+                            	send(player1, "wait for player", 50, 0);
                             }
-
-			 
+                            if (players==2){
+                            	board = build_game(master , fdmax, listener);
+                            	print_board(board,master,fdmax,listener);
+                            	player2=newfd;
+                            	player_turn=player1;
+                            	send(player1, "lets start, its your turn!\nplease press row press Enter end press column:", 50, 0);
+                            	send(player2, "lets start, wait for your turn", 50, 0);
+                            }
                     }
                 } else {
                     // handle data from a client
@@ -277,26 +267,79 @@ int main(void)
                         close(i); // bye!
                         FD_CLR(i, &master); // remove from master set
                     } else {
-                        // we got some data from a client
-                        for(j = 0; j <= fdmax; j++) {
-                        
-                        
-                     //   int byte_count = recv(4, buf, sizeof buf, 0);
-			// printf("recv()'d %d bytes of data in buf\n", byte_count);
-			 //byte_count = recv(newfd+1, buf, sizeof buf, 0);
-			 //printf("recv()'d %d bytes of data in buffrom: %d", byte_count,newfd+1);
-			 
-                            // send to everyone!
-                            if (FD_ISSET(j, &master)) {
-                                // except the listener and ourselves
-                                if (j != listener && j != i) {
-                                    if (send(j, buf, nbytes, 0) == -1) {
-                                        perror("send");
-                                    }
-                                }
-                            }
-                        }
+                    	if (player_turn==i){ 
+					move_play+=1;
+			    	if (move_play == 1){
+			    		row= buf[0] -'0';}
+			    	if (move_play==2){
+			    		col = buf[0] -'0';
+			    	if(player_turn == player1)
+			    		status_input = move_player(&board,row,col,0);
+			    	else 
+		    			status_input = move_player(&board,row,col,1);
+		    	move_play=0;
+		            	}
+		            /* 1 - god mov (betwen 0-2)
+		               2 - bad move 
+		             */  
+		             if (status_input ==1 ){	//this player end turn
+		    		print_board(board,master,fdmax,listener);
+		    		status_input=0;
+		    		if(player_turn == player1)
+		            		player_turn = player2;
+		            	else 
+		    			player_turn = player1;
+		            	moves++;
+	    			if (won(board, PLAYER1, (coordinate){row, col})) {
+					send(i, "Congratiolations, you won!\n", 50, 0);
+		             			for(j = 0; j <= fdmax; j++) {
+		                    			if (FD_ISSET(j, &master)) {
+		                        			if (j != listener && j != i) {
+		                            				 send(j, "you lose", 20, 0) ;
+		                            				 flag=1;
+		                            				 }
+		                    				}
+		            				}
+	    				}
+		            	if (won(board, PLAYER2, (coordinate){row, col})) {
+					send(i, "Congratiolations, you won!\n", 50, 0);//printf("Congratiolations, you won!\n");
+		             			for(j = 0; j <= fdmax; j++) {
+		                    			if (FD_ISSET(j, &master)) {
+		                        			if (j != listener && j != i) {
+		                            				 send(j, "you lose", 20, 0) ;
+		                            				 flag=1;
+		                            				}
+		                            			}
+		                    			}
+		            			}
+		                if (moves >= size * size) {
+		                	for(j = 0; j <= fdmax; j++) {
+		                		if (FD_ISSET(j, &master)&&(j != listener)) {
+		                			 send(j, "Tie", 20, 0) ;
+		                			 flag=1;
+		        					}  
+		                            		}
+		                    		}
+		                if(player_turn == player1){
+		        		send(player1, "It's your turn!\nplease press row press Enter end press column:", 200, 0);
+		        	 	send(player2, "wait for you turn.", 50, 0);
+		                	}
+				else{
+					send(player2, "It's your turn!\nplease press row press Enter end press column:", 200, 0);
+		        	 	send(player1, "wait for you turn.", 50, 0);
+			 		}
+	 			}
+			     if (status_input ==2 ){
+		             	printf("enter egain");
+		             	move_play=status_input=0;
+		             	}
+             		}
+
+                     else{
+                     send(i, "its not your turn!!!!", 30, 0);   
+                      }        
                     }
+                    if (flag==1) exit;
                 } // END handle data from client
             } // END got new incoming connection
         } // END looping through file descriptors

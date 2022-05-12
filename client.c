@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr),
 			s, sizeof s);
 	printf("client: connecting to %s\n", s);
+
 	freeaddrinfo(servinfo); // all done with this structure
 ///
 //////// CONNECTED
@@ -91,18 +92,14 @@ int main(int argc, char *argv[])
 		FD_SET(sockfd, &readfds);
 		select(sockfd+1, &readfds, NULL, NULL, NULL);
 		if (FD_ISSET(STDIN, &readfds)) {
-			numbytes = read(STDIN, buf, 200);
+			numbytes = read(STDIN, buf, 100);
 			send(sockfd,buf, numbytes,0);
 		} else {
-			numbytes = recv (sockfd, buf, 200, 0);
+			numbytes = recv (sockfd, buf, 100, 0);
 			buf[numbytes]=0;
-			printf("%s",buf);
+			printf("%s\n",buf);
 		}
-		
 	}
 	close(sockfd);
 	return 0;
 }
-
-
-
